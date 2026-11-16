@@ -1,1087 +1,232 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>ملخص مادة Compilers | جامعة الأنبار</title>
-    <!-- Google Fonts: Cairo & JetBrains Mono -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <!-- html2pdf.js library for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <style>
-        :root {
-            /* Light Theme Variables */
-            --bg-body: #f0f4f8;
-            --bg-card: #ffffff;
-            --bg-nav: rgba(255, 255, 255, 0.9);
-            --bg-code: #1e293b;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-code: #38bdf8;
-            --accent: #0284c7;
-            --accent-hover: #0369a1;
-            --accent-soft: rgba(2, 132, 199, 0.1);
-            --border: #e2e8f0;
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-            --success: #10b981;
-            --danger: #ef4444;
-        }
-
-        [data-theme="dark"] {
-            /* Dark Navy & Electric Blue Theme */
-            --bg-body: #070d19;
-            --bg-card: #0f172a;
-            --bg-nav: rgba(15, 23, 42, 0.9);
-            --bg-code: #020617;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-code: #38bdf8;
-            --accent: #38bdf8;
-            --accent-hover: #7dd3fc;
-            --accent-soft: rgba(56, 189, 248, 0.12);
-            --border: #1e293b;
-            --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.08);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-primary);
-            line-height: 1.7;
-            transition: background-color 0.4s ease, color 0.4s ease;
-            overflow-x: hidden;
-            width: 100%;
-        }
-
-        /* English / Code Text */
-        .en, code, pre {
-            font-family: 'JetBrains Mono', monospace;
-            direction: ltr;
-            text-align: left;
-        }
-
-        .en-inline {
-            font-family: 'JetBrains Mono', monospace;
-            direction: ltr;
-            display: inline-block;
-            background: var(--accent-soft);
-            color: var(--accent);
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 0.9em;
-            font-weight: 600;
-        }
-
-        /* Progress Bar */
-        #scroll-progress {
-            position: fixed;
-            top: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--accent), #818cf8);
-            width: 0%;
-            z-index: 1001;
-            transition: width 0.1s;
-        }
-
-        /* Navbar */
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background: var(--bg-nav);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 4%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 800;
-            font-size: 1.15rem;
-            color: var(--accent);
-            white-space: nowrap;
-        }
-
-        .logo span {
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .nav-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .search-box {
-            position: relative;
-        }
-
-        .search-box input {
-            padding: 8px 14px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            background: var(--bg-body);
-            color: var(--text-primary);
-            font-family: 'Cairo', sans-serif;
-            font-size: 0.85rem;
-            outline: none;
-            width: 180px;
-            transition: all 0.3s ease;
-        }
-
-        .search-box input:focus {
-            border-color: var(--accent);
-            width: 220px;
-            box-shadow: 0 0 10px var(--accent-soft);
-        }
-
-        .theme-toggle {
-            background: var(--accent-soft);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            flex-shrink: 0;
-        }
-
-        .theme-toggle:hover {
-            background: var(--accent);
-            color: #fff;
-            transform: rotate(20deg);
-        }
-
-        /* Hero Section */
-        .hero {
-            text-align: center;
-            padding: 50px 15px 30px;
-            background: radial-gradient(circle at top, var(--accent-soft), transparent 70%);
-        }
-
-        .badge {
-            display: inline-block;
-            background: var(--accent-soft);
-            color: var(--accent);
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            border: 1px solid var(--accent);
-            max-width: 90%;
-            word-wrap: break-word;
-        }
-
-        .hero h1 {
-            font-size: clamp(1.8rem, 4vw, 2.5rem);
-            font-weight: 800;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, var(--text-primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero p {
-            color: var(--text-secondary);
-            max-width: 650px;
-            margin: 0 auto 20px;
-            font-size: clamp(0.95rem, 2vw, 1.05rem);
-            padding: 0 10px;
-        }
-
-        .pdf-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 10px 22px;
-            border-radius: 30px;
-            font-family: 'Cairo', sans-serif;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            box-shadow: 0 4px 15px var(--accent-soft);
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .pdf-btn:hover {
-            background: var(--accent-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(2, 132, 199, 0.3);
-        }
-
-        /* Chapter Navigation Pills */
-        .chapter-nav {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 8px;
-            max-width: 1100px;
-            margin: 0 auto 35px;
-            padding: 0 15px;
-        }
-
-        .chapter-nav a {
-            text-decoration: none;
-            color: var(--text-secondary);
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            padding: 6px 14px;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow);
-        }
-
-        .chapter-nav a:hover {
-            color: #fff;
-            background: var(--accent);
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 1050px;
-            margin: 0 auto;
-            padding: 0 15px 60px;
-            width: 100%;
-        }
-
-        /* Chapter Sections & Animation */
-        .chapter-section {
-            margin-bottom: 40px;
-            opacity: 0;
-            transform: translateY(25px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-        }
-
-        .chapter-section.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .chapter-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--border);
-        }
-
-        .chapter-num {
-            background: var(--accent);
-            color: #fff;
-            width: 35px;
-            height: 35px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-
-        .chapter-header h2 {
-            font-size: clamp(1.3rem, 3vw, 1.6rem);
-            font-weight: 800;
-            word-break: break-word;
-        }
-
-        /* Cards */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: var(--shadow);
-            transition: transform 0.3s ease, border-color 0.3s ease;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .card:hover {
-            border-color: var(--accent);
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .tag-important {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-            font-size: 0.75rem;
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-weight: 700;
-        }
-
-        .def-box {
-            background: var(--bg-body);
-            border-right: 4px solid var(--accent);
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-        }
-
-        .def-box .en {
-            color: var(--text-primary);
-            font-weight: 600;
-            margin-bottom: 4px;
-            font-size: 0.9rem;
-            word-break: break-word;
-        }
-
-        .def-box .ar {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        /* Lists */
-        ul.styled-list, ol.styled-list {
-            padding-right: 20px;
-            margin-top: 8px;
-        }
-
-        ul.styled-list li, ol.styled-list li {
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
-
-        /* Tables Responsive Optimization */
-        .table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin: 15px 0;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: right;
-            min-width: 320px;
-        }
-
-        th {
-            background: var(--accent-soft);
-            color: var(--accent);
-            padding: 10px 12px;
-            font-weight: 700;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.85rem;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover td {
-            background: var(--accent-soft);
-        }
-
-        /* Code & Tree Blocks */
-        pre {
-            background: var(--bg-code);
-            color: var(--text-code);
-            padding: 15px;
-            border-radius: 10px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin: 12px 0;
-            font-size: 0.85rem;
-            line-height: 1.5;
-            border: 1px solid #334155;
-            max-width: 100%;
-        }
-
-        .tree-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        .tree-card {
-            background: var(--bg-body);
-            padding: 12px 15px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-
-        .tree-card h4 {
-            color: var(--accent);
-            margin-bottom: 8px;
-            font-family: 'JetBrains Mono', monospace;
-            direction: ltr;
-            font-size: 0.9rem;
-        }
-
-        /* Pipeline Flow */
-        .pipeline {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin: 15px 0;
-        }
-
-        .pipe-step {
-            background: var(--accent-soft);
-            border: 1px solid var(--accent);
-            color: var(--text-primary);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 600;
-            font-size: 0.8rem;
-            text-align: center;
-        }
-
-        .pipe-arrow {
-            color: var(--accent);
-            font-weight: 800;
-            font-size: 1rem;
-        }
-
-        @media (max-width: 650px) {
-            .pipeline {
-                flex-direction: column;
-            }
-            .pipe-arrow {
-                transform: rotate(90deg);
-            }
-        }
-
-        /* Accordion for Solved Exercises */
-        details {
-            background: var(--bg-body);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            padding: 10px 14px;
-            transition: all 0.3s ease;
-        }
-
-        details[open] {
-            border-color: var(--accent);
-        }
-
-        summary {
-            font-weight: 700;
-            cursor: pointer;
-            color: var(--text-primary);
-            list-style: none;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-        }
-
-        summary::-webkit-details-marker {
-            display: none;
-        }
-
-        summary::after {
-            content: 'إظهار الحل ▼';
-            font-size: 0.75rem;
-            color: var(--accent);
-            background: var(--accent-soft);
-            padding: 3px 8px;
-            border-radius: 6px;
-        }
-
-        details[open] summary::after {
-            content: 'إخفاء الحل ▲';
-        }
-
-        /* Interactive Quiz Styles */
-        .quiz-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            background: var(--accent-soft);
-            padding: 12px 16px;
-            border-radius: 10px;
-            margin-bottom: 16px;
-            border: 1px solid var(--accent);
-        }
-
-        .score-badge {
-            font-size: 1rem;
-            font-weight: 800;
-            color: var(--accent);
-        }
-
-        .question-box {
-            background: var(--bg-body);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 12px;
-            border: 1px solid var(--border);
-        }
-
-        .q-text {
-            font-family: 'JetBrains Mono', monospace;
-            direction: ltr;
-            text-align: left;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--text-primary);
-            font-size: 0.85rem;
-            word-break: break-word;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 8px;
-            direction: ltr;
-        }
-
-        .opt-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 8px 12px;
-            border-radius: 6px;
-            text-align: left;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            word-break: break-word;
-        }
-
-        .opt-btn:hover:not(:disabled) {
-            border-color: var(--accent);
-            background: var(--accent-soft);
-        }
-
-        .opt-btn.correct {
-            background: rgba(16, 185, 129, 0.2) !important;
-            border-color: var(--success) !important;
-            color: var(--success) !important;
-            font-weight: 700;
-        }
-
-        .opt-btn.wrong {
-            background: rgba(239, 68, 68, 0.2) !important;
-            border-color: var(--danger) !important;
-            color: var(--danger) !important;
-        }
-
-        .reset-btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-family: 'Cairo', sans-serif;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.3s;
-            font-size: 0.85rem;
-        }
-
-        .reset-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        /* Back to Top */
-        #back-to-top {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 1.1rem;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 999;
-            transition: transform 0.3s;
-        }
-
-        #back-to-top:hover {
-            transform: translateY(-4px);
-        }
-
-        footer {
-            text-align: center;
-            padding: 25px 15px;
-            border-top: 1px solid var(--border);
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 700;
-            transition: opacity 0.2s;
-        }
-
-        footer a:hover {
-            opacity: 0.8;
-            text-decoration: underline;
-        }
-
-        @media (max-width: 480px) {
-            .logo span { display: none; }
-            .search-box input { width: 130px; }
-            .search-box input:focus { width: 150px; }
-            .hero { padding: 35px 10px 20px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ملخص مادة Compilers | جامعة الأنبار</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg-body:#070d19;--bg-card:#0f172a;--bg-nav:rgba(15,23,42,.92);--bg-code:#020617;--text-primary:#f8fafc;--text-secondary:#94a3b8;--text-code:#38bdf8;--accent:#38bdf8;--accent-hover:#7dd3fc;--accent-soft:rgba(56,189,248,.12);--border:#1e293b;--shadow:0 10px 30px -5px rgba(0,0,0,.35);--success:#10b981;--danger:#ef4444}
+[data-theme=light]{--bg-body:#f0f4f8;--bg-card:#fff;--bg-nav:rgba(255,255,255,.92);--bg-code:#1e293b;--text-primary:#0f172a;--text-secondary:#475569;--text-code:#38bdf8;--accent:#0284c7;--accent-hover:#0369a1;--accent-soft:rgba(2,132,199,.1);--border:#e2e8f0;--shadow:0 10px 25px -5px rgba(0,0,0,.06)}
+*{box-sizing:border-box;margin:0;padding:0;scroll-behavior:smooth}
+body{font-family:Cairo,sans-serif;background:var(--bg-body);color:var(--text-primary);line-height:1.75;transition:.3s}
+.en,code,pre{font-family:"JetBrains Mono",monospace;direction:ltr;text-align:left}
+.en-inline{font-family:"JetBrains Mono",monospace;direction:ltr;display:inline-block;background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:6px;font-size:.9em}
+#scroll-progress{position:fixed;top:0;right:0;height:4px;background:linear-gradient(90deg,var(--accent),#818cf8);width:0;z-index:1001}
+header{position:sticky;top:0;z-index:1000;background:var(--bg-nav);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 4%;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.logo{font-weight:800;color:var(--accent);font-size:1.1rem}.logo span{color:var(--text-primary);font-size:.85rem;font-weight:600}
+.nav-controls{display:flex;align-items:center;gap:10px}.search-box input{width:190px;max-width:42vw;padding:8px 13px;border-radius:20px;border:1px solid var(--border);background:var(--bg-body);color:var(--text-primary);font-family:Cairo;outline:none}
+.theme-toggle{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.1rem}
+.hero{text-align:center;padding:45px 15px 28px;background:radial-gradient(circle at top,var(--accent-soft),transparent 70%)}
+.badge{display:inline-block;background:var(--accent-soft);color:var(--accent);padding:6px 14px;border-radius:30px;font-size:.8rem;font-weight:700;margin-bottom:12px;border:1px solid var(--accent)}
+.hero h1{font-size:clamp(1.8rem,4vw,2.5rem);font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,var(--text-primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text-secondary);max-width:700px;margin:0 auto 15px}
+.pdf-btn,.reset-btn{background:var(--accent);color:#fff;border:0;padding:10px 20px;border-radius:25px;font-family:Cairo;font-weight:700;cursor:pointer}
+.chapter-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:1150px;margin:0 auto 30px;padding:0 12px}
+.chapter-nav a{text-decoration:none;color:var(--text-secondary);background:var(--bg-card);border:1px solid var(--border);padding:6px 12px;border-radius:10px;font-size:.82rem;font-weight:700;box-shadow:var(--shadow)}
+.chapter-nav a:hover{background:var(--accent);color:white}
+.container{max-width:1050px;margin:auto;padding:0 15px 55px}
+.chapter-section{margin-bottom:38px;scroll-margin-top:90px}
+.chapter-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+.chapter-num{background:var(--accent);color:#fff;min-width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-weight:800}
+.chapter-header h2{font-size:clamp(1.2rem,3vw,1.55rem)}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:19px;margin-bottom:15px;box-shadow:var(--shadow);overflow:hidden}
+.card-title{font-size:1.05rem;font-weight:700;color:var(--accent);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.tag-important{background:rgba(239,68,68,.15);color:#ef4444;font-size:.73rem;padding:3px 8px;border-radius:20px;font-weight:700}
+.def-box{background:var(--bg-body);border-right:4px solid var(--accent);padding:12px 15px;border-radius:8px;margin-bottom:12px}
+.def-box .en{font-weight:600;margin-bottom:5px;font-size:.9rem}
+.def-box .ar{color:var(--text-secondary);font-size:.9rem}
+ul.styled-list,ol.styled-list{padding-right:22px;margin:8px 0}
+ul.styled-list li,ol.styled-list li{margin-bottom:7px}
+.table-wrapper{width:100%;overflow-x:auto;margin:14px 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;text-align:right;min-width:320px}
+th{background:var(--accent-soft);color:var(--accent);padding:10px;border-bottom:1px solid var(--border)}
+td{padding:10px;border-bottom:1px solid var(--border);font-size:.88rem}
+tr:last-child td{border-bottom:0}
+pre{background:var(--bg-code);color:var(--text-code);padding:14px;border-radius:9px;overflow-x:auto;margin:10px 0;font-size:.83rem;line-height:1.55;border:1px solid #334155;white-space:pre}
+.tree-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:12px}
+.tree-card{background:var(--bg-body);padding:12px;border-radius:10px;border:1px solid var(--border);overflow:hidden}
+.tree-card h4{color:var(--accent);margin-bottom:7px;font-family:"JetBrains Mono";direction:ltr}
+.pipeline{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin:15px 0}
+.pipe-step{background:var(--accent-soft);border:1px solid var(--accent);padding:8px 11px;border-radius:8px;font-family:"JetBrains Mono";font-size:.78rem}
+details{background:var(--bg-body);border:1px solid var(--border);border-radius:8px;margin:8px 0;padding:10px 13px}
+details[open]{border-color:var(--accent)}
+summary{font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+summary::-webkit-details-marker{display:none}
+summary:after{content:"إظهار الحل ▼";font-size:.72rem;color:var(--accent);background:var(--accent-soft);padding:3px 8px;border-radius:6px;white-space:nowrap}
+details[open] summary:after{content:"إخفاء الحل ▲"}
+.question-box{background:var(--bg-body);padding:14px;border-radius:10px;margin-bottom:12px;border:1px solid var(--border)}
+.q-text{font-family:"JetBrains Mono";direction:ltr;text-align:left;font-weight:600;margin-bottom:10px;font-size:.85rem}
+.options-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;direction:ltr}
+.opt-btn{background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);padding:8px 11px;border-radius:6px;text-align:left;font-family:"JetBrains Mono";font-size:.8rem;cursor:pointer}
+.opt-btn:disabled{cursor:default}.opt-btn.correct{background:rgba(16,185,129,.18);border-color:var(--success);color:var(--success)}.opt-btn.wrong{background:rgba(239,68,68,.18);border-color:var(--danger);color:var(--danger)}
+.quiz-header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--accent-soft);padding:12px;border-radius:10px;margin-bottom:14px}
+.score-badge{font-weight:800;color:var(--accent)}
+#back-to-top{position:fixed;bottom:20px;left:20px;background:var(--accent);color:#fff;border:0;width:42px;height:42px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:none;z-index:999}
+footer{text-align:center;padding:24px 12px;border-top:1px solid var(--border);color:var(--text-secondary)}
+footer a{color:var(--accent);text-decoration:none;font-weight:700}
+@media(max-width:600px){header{padding:10px 3%}.logo span{display:none}.search-box input{width:135px}.hero{padding-top:32px}.pipeline{flex-direction:column}.card{padding:14px}}
+
+/* PDF: use the browser's native print engine to preserve Arabic/English text */
+@page {
+    size: A4;
+    margin: 12mm;
+}
+
+@media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        box-sizing: border-box;
+    }
+
+    html, body {
+        width: 100%;
+        height: auto;
+        overflow: visible !important;
+    }
+
+    header,
+    .chapter-nav,
+    .hero,
+    #back-to-top,
+    #scroll-progress,
+    footer {
+        display: none !important;
+    }
+
+    #pdfContent {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .chapter-section {
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+        margin-bottom: 15px !important;
+    }
+
+    .card {
+        break-inside: auto;
+        page-break-inside: auto;
+        box-shadow: none !important;
+    }
+
+    .def-box,
+    .tree-card,
+    tr,
+    details {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .table-wrapper {
+        overflow: visible !important;
+    }
+
+    table {
+        width: 100% !important;
+    }
+
+    pre {
+        white-space: pre-wrap !important;
+        overflow: visible !important;
+        overflow-wrap: anywhere;
+    }
+
+    .en {
+        direction: ltr !important;
+        text-align: left !important;
+    }
+
+    .ar {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    a {
+        text-decoration: none !important;
+    }
+}
+</style>
 </head>
 <body data-theme="dark">
+<div id="scroll-progress"></div>
+<header>
+  <div class="logo">⚡ Compilers <span>| ملخص الامتحان الشامل</span></div>
+  <div class="nav-controls">
+    <div class="search-box"><input id="searchInput" type="text" placeholder="ابحث عن تعريف أو مصطلح..."></div>
+    <button class="theme-toggle" id="themeToggle" title="تبديل الوضع">☀️</button>
+  </div>
+</header>
 
-    <!-- Scroll Progress Bar -->
-    <div id="scroll-progress"></div>
+<section class="hero">
+  <div class="badge">كلية علوم الحاسوب وتكنولوجيا المعلومات – جامعة الأنبار</div>
+  <h1>ملخص مادة المترجمات (Compilers)</h1>
+  <p>إعداد منظم لمادة Compilers — التعاريف والتعدادات والفروقات والأمثلة والامتحانات السابقة.</p>
+  <button class="pdf-btn" id="downloadPdfBtn" onclick="downloadPDF()">📥 تحميل الملخص PDF</button>
+</section>
 
-    <!-- Header -->
-    <header>
-        <div class="logo">
-            ⚡ Compilers <span>| ملخص الامتحان الشامل</span>
-        </div>
-        <div class="nav-controls">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="ابحث عن تعريف أو مصطلح...">
-            </div>
-            <button class="theme-toggle" id="themeToggle" title="تبديل الوضع الليلي/النهاري">☀️</button>
-        </div>
-    </header>
+<nav class="chapter-nav">
+<a href="#ch1">1. Introduction</a><a href="#ch2">2. Compilation</a><a href="#ch3">3. Errors</a><a href="#ch4">4. Processing System</a><a href="#ch5">5. Lexical Analyzer</a><a href="#ch6">6. Syntax Analyzer</a><a href="#ch7">7. Ambiguity & Grammar</a><a href="#previous-exams">📚 Previous Years Exams</a><a href="#comparisons">⚡ الفروقات</a><a href="#quiz-section">🎯 الاختبار (29 سؤال)</a>
+</nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="badge">كلية علوم الحاسوب وتكنولوجيا المعلومات – جامعة الأنبار</div>
-        <h1>ملخص مادة المترجمات (Compilers)</h1>
-        <p>إعداد منظم حسب محاضرات <strong>M.Sc. Esam T. Yassen</strong> — يشمل جميع التعاريف، التعدادات، الفروقات، الأشجار النحوية، واختبارات تفاعلية شاملة.</p>
-        <button class="pdf-btn" id="downloadPdfBtn" onclick="downloadPDF()">
-            📥 تحميل الملخص PDF
-        </button>
-    </section>
+<main class="container" id="pdfContent">
+<section id="ch1" class="chapter-section">
+<div class="chapter-header"><div class="chapter-num">1</div><h2>الفصل الأول: Introduction</h2></div>
+<div class="card"><div class="card-title">Programming Languages</div><div class="def-box"><div class="en">A programming language is a set of symbols, words, and rules used to instruct the computer.</div><div class="ar">لغة البرمجة مجموعة من الرموز والكلمات والقواعد المستخدمة لإعطاء التعليمات للحاسوب.</div></div></div>
+<div class="card"><div class="card-title">Types of Programming Languages <span class="tag-important">احفظ الأنواع</span></div><ol class="styled-list"><li><b>Machine Language:</b> The actual language in which the computer carries out instructions. — لغة الآلة.</li><li><b>Assembly Language:</b> A symbolic version of machine language. — لغة رمزية مثل ADD وSUB.</li><li><b>High-Level Language (H.L.L):</b> Does not require knowledge of the actual computing machine. — لغة عالية المستوى.</li><li><b>Problem-Oriented Language:</b> Expresses problems in a specific application. — مثل SQL.</li></ol></div>
+<div class="card"><div class="card-title">Advantages of H.L.L over L.L.L <span class="tag-important">6 نقاط</span></div><ol class="styled-list en" dir="ltr"><li>H.L.L are easier to learn than L.L.L.</li><li>No need to know how to convert data from external to internal form.</li><li>Offers a variety of control structures.</li><li>Programs are more easily debugged.</li><li>Offers more powerful data structures.</li><li>Relatively machine-independent and portable.</li></ol></div>
+<div class="card"><div class="card-title">Translator & Types</div><div class="def-box"><div class="en">A translator converts a source program into an object or target program.</div><div class="ar">المترجم يحول البرنامج المصدري إلى برنامج هدف.</div></div><div class="table-wrapper"><table class="en"><tr><th>Type</th><th>Source</th><th>Target</th></tr><tr><td>Assembler</td><td>Assembly</td><td>Machine</td></tr><tr><td>Compiler</td><td>H.L.L</td><td>L.L.L</td></tr><tr><td>Decompiler</td><td>L.L.L</td><td>H.L.L</td></tr></table></div></div>
+<div class="card"><div class="card-title">Compile Time vs Run Time</div><ul class="styled-list"><li><b>Compile Time:</b> The time at which the source program is converted into an object program. (وقت الترجمة)</li><li><b>Run Time:</b> The time at which the object program is executed. (وقت التنفيذ)</li></ul></div>
+<div class="card"><div class="card-title">Interpreter vs Compiler</div><div class="def-box"><div class="en">An interpreter processes the source program and data at the same time.</div><div class="ar">المفسر يعالج البرنامج والبيانات في الوقت نفسه ولا ينتج Object Program.</div></div><div class="table-wrapper"><table class="en"><tr><th>Compiler</th><th>Interpreter</th></tr><tr><td>Generates object program</td><td>No object program</td></tr><tr><td>Usually runs faster</td><td>Usually runs slower</td></tr><tr><td>Translation before execution</td><td>Processing at run time</td></tr><tr><td>Less interactive debugging</td><td>Interactive debugging</td></tr></table></div></div>
+</section>
 
-    <!-- Quick Navigation -->
-    <nav class="chapter-nav">
-        <a href="#ch1">1. Introduction</a>
-        <a href="#ch2">2. Compilation</a>
-        <a href="#ch3">3. Errors</a>
-        <a href="#ch4">4. Processing System</a>
-        <a href="#ch5">5. Lexical Analyzer</a>
-        <a href="#ch6">6. Syntax Analyzer</a>
-        <a href="#ch7">7. Ambiguity & Grammar</a>
-        <a href="#comparisons">⚡ أهم الفروقات</a>
-        <a href="#quiz-section">🎯 اختبر نفسك (29 سؤال)</a>
-    </nav>
+<section id="ch2" class="chapter-section">
+<div class="chapter-header"><div class="chapter-num">2</div><h2>الفصل الثاني: Compilation Concepts</h2></div>
+<div class="card"><div class="card-title">Compiler & Model of Compiler</div><div class="def-box"><div class="en">A compiler translates a source program written in H.L.L into an equivalent target program written in L.L.L.</div><div class="ar">المترجم يحول لغة عالية المستوى إلى لغة منخفضة المستوى.</div></div><ol class="styled-list"><li><b>Analysis:</b> Decomposition of the source program into its basic parts. (تحليل وتقسيم البرنامج)</li><li><b>Synthesis:</b> Builds the equivalent object program using these basic parts. (بناء البرنامج الهدف)</li></ol></div>
+<div class="card"><div class="card-title">Compiler Phases <span class="tag-important">بالترتيب</span></div><div class="pipeline"><span class="pipe-step">Lexical Analyzer</span> ← <span class="pipe-step">Syntax Analyzer</span> ← <span class="pipe-step">Semantic Analyzer</span> ← <span class="pipe-step">Intermediate Code</span> ← <span class="pipe-step">Code Optimization</span> ← <span class="pipe-step">Code Generation</span></div><ol class="styled-list"><li><b>Lexical Analyzer:</b> Separates source code into tokens.</li><li><b>Syntax Analyzer:</b> Combines tokens into well-formed expressions and statements.</li><li><b>Semantic Analyzer:</b> Determines the meaning of the source program.</li><li><b>Intermediate Code Generator:</b> Creates an internal form of the program.</li><li><b>Code Optimizer:</b> Produces a more efficient object program.</li><li><b>Code Generator:</b> Translates intermediate representation into target language.</li></ol></div>
+<div class="card"><div class="card-title">Front-End vs Back-End</div><div class="table-wrapper"><table class="en"><tr><th>Front-End</th><th>Back-End</th></tr><tr><td>Depends on source language</td><td>Depends on target machine</td></tr><tr><td>Lexical Analysis</td><td>Code Optimization</td></tr><tr><td>Syntax Analysis</td><td>Code Generation</td></tr><tr><td>Semantic Analysis</td><td>—</td></tr><tr><td>Intermediate Code Generation</td><td>—</td></tr></table></div></div>
+<div class="card"><div class="card-title">Symbol Table</div><div class="def-box"><div class="en">A data structure containing a record for each identifier, with fields for the attributes of the identifier.</div><div class="ar">هيكل بيانات يحتوي على سجل لكل Identifier وخصائصه.</div></div><p><b>Contents:</b></p><ol class="styled-list en" dir="ltr"><li>Variable Name.</li><li>Object Time Address.</li><li>Type.</li><li>Dimension of Array or Number of Parameters.</li><li>Source Line Number at which the variable is declared.</li><li>Source Line Number at which the variable is referenced.</li><li>Link Field for alphabetical order.</li></ol><p><b>Operations:</b> Insertion (إضافة)، Lookup/Retrieval (بحث واسترجاع)، Set (إنشاء جدول فرعي عند بداية Block)، Reset (إزالة الجدول الفرعي عند نهاية Block).</p><p><b>Organizations:</b> Unordered ST، Ordered ST، Tree-Structured ST.</p></div>
+</section>
 
-    <main class="container" id="pdfContent">
+<section id="ch3" class="chapter-section">
+<div class="chapter-header"><div class="chapter-num">3</div><h2>الفصل الثالث: Errors</h2></div>
+<div class="card"><div class="card-title">Types of Errors <span class="tag-important">تعريفات</span></div><ol class="styled-list"><li><b>Lexical Errors:</b> Input characters do not form any token of the language. — الأحرف لا تكوّن Token صحيحاً.</li><li><b>Syntax Errors:</b> Token stream violates the structure rules of the language. — خطأ في تركيب الجملة.</li><li><b>Semantic Errors:</b> Program has correct syntactic structure but incorrect meaning. — التركيب صحيح لكن المعنى غير صحيح.</li></ol></div>
+<div class="card"><div class="card-title">Compile-Time vs Runtime Errors</div><p><b>Compile-Time Errors:</b> أخطاء يكتشفها المترجم أثناء الترجمة، وقد تتضمن File Name وLine Number وType of Error.</p><div class="def-box"><div class="en">Runtime Errors occur while the program is running, although compilation is successful.</div><div class="ar">أخطاء تحدث أثناء التنفيذ رغم نجاح الترجمة.</div></div><div class="tree-grid"><div class="tree-card"><h4>External Factors</h4><ul class="styled-list en" dir="ltr"><li>Out of memory.</li><li>Hard disk full.</li><li>Insufficient I/O privileges.</li></ul></div><div class="tree-card"><h4>Internal Factors</h4><ul class="styled-list en" dir="ltr"><li>Arithmetic errors.</li><li>Read beyond end of file.</li><li>Open a non-existent file.</li><li>Read beyond end of array.</li></ul></div></div></div>
+</section>
 
-        <!-- ==================== CHAPTER 1 ==================== -->
-        <section id="ch1" class="chapter-section">
-            <div class="chapter-header">
-                <div class="chapter-num">1</div>
-                <h2>الفصل الأول: Introduction</h2>
-            </div>
+<section id="ch4" class="chapter-section">
+<div class="chapter-header"><div class="chapter-num">4</div><h2>الفصل الرابع: Language Processing System</h2></div>
+<div class="card"><div class="card-title">Processing Stages, Preprocessing & Loader</div><div class="pipeline"><span class="pipe-step">Source Program</span> ← <span class="pipe-step">Preprocessor</span> ← <span class="pipe-step">Compiler</span> ← <span class="pipe-step">Assembler</span> ← <span class="pipe-step">Link Editor / Loader</span> ← <span class="pipe-step">Machine Code</span></div><p><b>Preprocessing:</b></p><ul class="styled-list"><li><b>Comments:</b> Removed from source file.</li><li><b>Macros:</b> Replaced with equivalent text. Example: <code>#define pi 3.14</code></li><li><b>Directives:</b> Processed by the preprocessor.</li></ul><p><b>Loader / Link Editor:</b></p><ul class="styled-list"><li><b>Loading:</b> Places machine code and data in memory at proper locations.</li><li><b>Link-Editing:</b> Makes a single program from several files.</li></ul></div>
+</section>
 
-            <div class="card">
-                <div class="card-title">1. Programming Languages</div>
-                <div class="def-box">
-                    <div class="en">Definition: A programming language is a set of symbols, words, and rules used to instruct the computer.</div>
-                    <div class="ar">لغة البرمجة هي مجموعة من الرموز والكلمات والقواعد المستخدمة لإعطاء التعليمات للحاسوب.</div>
-                </div>
-            </div>
+<section id="ch5" class="chapter-section">
+<div class="chapter-header"><div class="chapter-num">5</div><h2>الفصل الخامس: Lexical Analyzer</h2></div>
+<div class="card"><div class="card-title">Lexical Analyzer (Scanner) & Tokens</div><div class="def-box"><div class="en">The lexical analyzer or scanner reads the source program one character at a time and produces a stream of tokens.</div><div class="ar">يقرأ البرنامج حرفاً حرفاً وينتج مجموعة من Tokens.</div></div><div class="table-wrapper"><table class="en"><tr><th>Token</th><th>Example</th><th>Representation</th></tr><tr><td>Identifiers</td><td>sum, value, X</td><td>&lt;ident, "sum"&gt;</td></tr><tr><td>Numeric Literals</td><td>123, 1.35E02</td><td>&lt;numericliteral, "123"&gt;</td></tr><tr><td>Operators</td><td>+, *, &amp;&amp;, &gt;=</td><td>&lt;relop, "&gt;="&gt;</td></tr><tr><td>Keywords</td><td>if, else, return</td><td>&lt;keyword, "if"&gt;</td></tr></table></div><p><b>Scanner with Parser:</b></p><ul class="styled-list"><li>Separate pass: scanner processes source and stores tokens in a file or table.</li><li>On-demand: parser calls scanner whenever it needs a new token (الطريقة المفضلة في الملخص).</li></ul><p><b>Secondary Tasks:</b> Removing Comments, White Spaces, Blank, Tab, New Line Characters.</p><p><b>Lexical Error Recovery Actions:</b></p><ol class="styled-list en" dir="ltr"><li>Deleting an extraneous character.</li><li>Inserting a missing character.</li><li>Replacing an incorrect character.</li><li>Transposing two adjacent characters.</li></ol></div>
+</section>
 
-            <div class="card">
-                <div class="card-title">2. Types of Programming Languages <span class="tag-important">حفظ الأنواع الأربعة</span></div>
-                <ol class="styled-list">
-                    <li><strong>Machine Language:</strong> <span class="en-inline">The actual language in which the computer carries out instructions.</span><br>لغة الآلة، تعتمد على الأكواد الرقمية (Numeric Code).</li>
-                    <li><strong>Assembly Language:</strong> <span class="en-inline">A symbolic version of machine language.</span><br>لغة رمزية تستخدم اختصارات مثل ADD و SUB.</li>
-                    <li><strong>High-Level Language (H.L.L):</strong> <span class="en-inline">A language that does not require knowledge of the actual computing machine.</span><br>لغة عالية المستوى لا تتطلب معرفة تفاصيل الجهاز.</li>
-                    <li><strong>Problem-Oriented Language:</strong> <span class="en-inline">Provides expression of problems in a specific application.</span><br>لغة مخصصة لتطبيق معين، مثل SQL لقواعد البيانات.</li>
-                </ol>
-            </div>
-
-            <div class="card">
-                <div class="card-title">3. Advantages of H.L.L over L.L.L <span class="tag-important">مهم جداً – تعداد (6)</span></div>
-                <ul class="styled-list en" style="direction: ltr; text-align: left;">
-                    <li>H.L.L are easier to learn than L.L.L.</li>
-                    <li>No need to know how to convert data from external to internal form.</li>
-                    <li>Offers a variety of control structures.</li>
-                    <li>Programs are more easily debugged.</li>
-                    <li>Offers more powerful data structures.</li>
-                    <li>Relatively machine-independent and portable.</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <div class="card-title">4. Translator & Types <span class="tag-important">احفظ الجدول</span></div>
-                <div class="def-box">
-                    <div class="en">Definition: A translator converts a source program into an object or target program.</div>
-                    <div class="ar">المترجم يحول البرنامج المصدري إلى برنامج هدف.</div>
-                </div>
-                <div class="table-wrapper">
-                    <table class="en">
-                        <thead>
-                            <tr><th>Type</th><th>Source</th><th>Target</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>Assembler</td><td>Assembly</td><td>Machine</td></tr>
-                            <tr><td>Compiler</td><td>H.L.L</td><td>L.L.L</td></tr>
-                            <tr><td>Decompiler</td><td>L.L.L</td><td>H.L.L</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">5. Compile Time vs Run Time</div>
-                <ul class="styled-list">
-                    <li><strong>Compile Time:</strong> <span class="en-inline">The time at which the source program is converted into an object program.</span> (وقت الترجمة)</li>
-                    <li><strong>Run Time:</strong> <span class="en-inline">The time at which the object program is executed.</span> (وقت تنفيذ البرنامج)</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <div class="card-title">6. Interpreter & Compiler vs Interpreter</div>
-                <div class="def-box">
-                    <div class="en">Definition: An interpreter processes the source program and data at the same time.</div>
-                    <div class="ar">المفسر يعالج البرنامج والبيانات في الوقت نفسه، ولا ينتج Object Program.</div>
-                </div>
-                <div class="table-wrapper">
-                    <table class="en">
-                        <thead>
-                            <tr><th>Compiler</th><th>Interpreter</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>Generates object program</td><td>No object program</td></tr>
-                            <tr><td>Usually runs faster</td><td>Usually runs slower</td></tr>
-                            <tr><td>Translation before execution</td><td>Processing at run time</td></tr>
-                            <tr><td>Harder to write</td><td>Easier to write</td></tr>
-                            <tr><td>Debugging less interactive</td><td>Supports interactive debugging</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==================== CHAPTER 2 ==================== -->
-        <section id="ch2" class="chapter-section">
-            <div class="chapter-header">
-                <div class="chapter-num">2</div>
-                <h2>الفصل الثاني: Compilation Concepts</h2>
-            </div>
-
-            <div class="card">
-                <div class="card-title">7. What is Compiler? & Model of Compiler</div>
-                <div class="def-box">
-                    <div class="en">Definition: A compiler is a program that translates a source program written in H.L.L into an equivalent target program written in L.L.L.</div>
-                    <div class="ar">المترجم برنامج يحول لغة عالية المستوى إلى لغة منخفضة المستوى.</div>
-                </div>
-                <p><strong>مهمتا المترجم الأساسيتان (Model of Compiler):</strong></p>
-                <ol class="styled-list">
-                    <li><strong>Analysis:</strong> <span class="en-inline">Decomposition of the source program into its basic parts.</span> (تحليل البرنامج وتقسيمه إلى أجزاء أساسية)</li>
-                    <li><strong>Synthesis:</strong> <span class="en-inline">Builds the equivalent object program using these basic parts.</span> (بناء البرنامج الهدف باستخدام الأجزاء الأساسية)</li>
-                </ol>
-            </div>
-
-            <div class="card">
-                <div class="card-title">8. Compiler Phases <span class="tag-important">من أهم التعدادات بالترتيب</span></div>
-                <div class="pipeline">
-                    <div class="pipe-step">1. Lexical Analyzer</div><span class="pipe-arrow">←</span>
-                    <div class="pipe-step">2. Syntax Analyzer</div><span class="pipe-arrow">←</span>
-                    <div class="pipe-step">3. Semantic Analyzer</div><span class="pipe-arrow">←</span>
-                    <div class="pipe-step">4. Intermediate Code Gen</div><span class="pipe-arrow">←</span>
-                    <div class="pipe-step">5. Code Optimization</div><span class="pipe-arrow">←</span>
-                    <div class="pipe-step">6. Code Generation</div>
-                </div>
-                <ol class="styled-list">
-                    <li><strong>Lexical Analyzer:</strong> <span class="en-inline">Separates source code into tokens.</span> (تقسيم الكود إلى Tokens مثل Keywords و Variables و Operators).</li>
-                    <li><strong>Syntax Analyzer:</strong> <span class="en-inline">Combines tokens into well-formed expressions and statements.</span> (يجمع الرموز ويتحقق من صحة تركيب الجمل).</li>
-                    <li><strong>Semantic Analyzer:</strong> <span class="en-inline">Determines the meaning of the source program.</span> (يتحقق من المعنى الصحيح للبرنامج).</li>
-                    <li><strong>Intermediate Code Generator:</strong> <span class="en-inline">Creates an internal form of the program.</span> (ينشئ كوداً وسيطاً).</li>
-                    <li><strong>Code Optimizer:</strong> <span class="en-inline">Produces a more efficient object program.</span> (يجعل البرنامج أسرع أو يقلل المساحة أو الاثنين معاً).</li>
-                    <li><strong>Code Generator:</strong> <span class="en-inline">Translates intermediate representation into target language.</span> (يحول الكود الوسيط إلى لغة الهدف).</li>
-                </ol>
-            </div>
-
-            <div class="card">
-                <div class="card-title">9. Front-End vs Back-End</div>
-                <div class="table-wrapper">
-                    <table class="en">
-                        <thead>
-                            <tr><th>Front-End (Source Language)</th><th>Back-End (Target Machine)</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>Depends on source language</td><td>Depends on target machine</td></tr>
-                            <tr><td>Lexical Analysis</td><td>Code Optimization</td></tr>
-                            <tr><td>Syntax Analysis</td><td>Code Generation</td></tr>
-                            <tr><td>Semantic Analysis</td><td>-</td></tr>
-                            <tr><td>Intermediate Code Generation</td><td>-</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">10. Symbol Table (جدول الرموز)</div>
-                <div class="def-box">
-                    <div class="en">Definition: A symbol table is a data structure containing a record for each identifier, with fields for the attributes of the identifier.</div>
-                    <div class="ar">جدول الرموز هو هيكل بيانات يحتوي على سجل لكل Identifier وخصائصه.</div>
-                </div>
-                <p><strong>Symbol Table Contents (الخصائص السبعة):</strong></p>
-                <ul class="styled-list en" style="direction: ltr; text-align: left;">
-                    <li>Variable Name.</li>
-                    <li>Object Time Address.</li>
-                    <li>Type.</li>
-                    <li>Dimension of Array or Number of Parameters.</li>
-                    <li>Source Line Number at which the variable is declared.</li>
-                    <li>Source Line Number at which the variable is referenced.</li>
-                    <li>Link Field for alphabetical order.</li>
-                </ul>
-                <p style="margin-top:15px;"><strong>Operations on Symbol Table:</strong></p>
-                <ul class="styled-list">
-                    <li><strong>Insertion:</strong> إضافة عنصر.</li>
-                    <li><strong>Lookup (Retrieval):</strong> البحث واسترجاع المعلومات.</li>
-                    <li><strong>Set:</strong> إنشاء جدول فرعي عند بداية Block.</li>
-                    <li><strong>Reset:</strong> إزالة الجدول الفرعي عند نهاية Block.</li>
-                </ul>
-                <p style="margin-top:15px;"><strong>ST Organizations:</strong></p>
-                <ul class="styled-list">
-                    <li><strong>Unordered ST:</strong> إضافة المتغيرات حسب ترتيب التصريح بها.</li>
-                    <li><strong>Ordered ST:</strong> ترتيب المتغيرات حسب أسمائها.</li>
-                    <li><strong>Tree-Structured ST:</strong> تنظيم جدول الرموز باستخدام Tree.</li>
-                </ul>
-            </div>
-        </section>
-
-        <!-- ==================== CHAPTER 3 ==================== -->
-        <section id="ch3" class="chapter-section">
-            <div class="chapter-header">
-                <div class="chapter-num">3</div>
-                <h2>الفصل الثالث: Errors</h2>
-            </div>
-
-            <div class="card">
-                <div class="card-title">11. Types of Errors <span class="tag-important">تعريفات وفروقات</span></div>
-                <ol class="styled-list">
-                    <li><strong>Lexical Errors:</strong> <span class="en-inline">Errors where the input characters do not form any token of the language.</span><br>خطأ يحدث عندما لا تشكل الأحرف Token صحيحاً.</li>
-                    <li><strong>Syntax Errors:</strong> <span class="en-inline">Errors where the token stream violates the structure rules of the language.</span><br>خطأ في تركيب الجملة أو قواعد اللغة (مثال: عدم توازن الأقواس).</li>
-                    <li><strong>Semantic Errors:</strong> <span class="en-inline">Errors where the program has the right syntactic structure but has no correct meaning.</span><br>التركيب صحيح لكن المعنى غير صحيح (مثال: إجراء عملية غير مناسبة بين Array و Procedure).</li>
-                </ol>
-            </div>
-
-            <div class="card">
-                <div class="card-title">12. Compile-Time vs Runtime Errors</div>
-                <p><strong>Compile-Time Errors:</strong> الأخطاء التي يكتشفها المترجم أثناء الترجمة، وغالباً تحتوي رسالتها على: <span class="en-inline">File Name</span>، <span class="en-inline">Line Number</span>، <span class="en-inline">Type of Error</span>.</p>
-                <div class="def-box" style="margin-top: 12px;">
-                    <div class="en">Runtime Errors: Occur while the program is running, although compilation is successful.</div>
-                    <div class="ar">أخطاء تحدث أثناء تنفيذ البرنامج رغم نجاح الترجمة.</div>
-                </div>
-                <div class="tree-grid">
-                    <div class="tree-card">
-                        <h4>A. External Factors</h4>
-                        <ul class="styled-list en" style="direction: ltr;">
-                            <li>Out of memory.</li>
-                            <li>Hard disk full.</li>
-                            <li>Insufficient I/O privileges.</li>
-                        </ul>
-                    </div>
-                    <div class="tree-card">
-                        <h4>B. Internal Factors</h4>
-                        <ul class="styled-list en" style="direction: ltr;">
-                            <li>Arithmetic errors.</li>
-                            <li>Read beyond the end of a file.</li>
-                            <li>Open a non-existent file.</li>
-                            <li>Read beyond the end of an array.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==================== CHAPTER 4 ==================== -->
-        <section id="ch4" class="chapter-section">
-            <div class="chapter-header">
-                <div class="chapter-num">4</div>
-                <h2>الفصل الرابع: Language Processing System</h2>
-            </div>
-
-            <div class="card">
-                <div class="card-title">13. Processing Stages, Preprocessing & Loader</div>
-                <div class="pipeline">
-                    <div class="pipe-step">Source Program</div><span class="pipe-arrow">←</span>
-                    <div class="pipe-step">Preprocessor</div><span class="pipe-arrow">←</span>
-                    <div class="pipe-step">Compiler</div><span class="pipe-arrow">←</span>
-                    <div class="pipe-step">Assembler</div><span class="pipe-arrow">←</span>
-                    <div class="pipe-step">Loader / Link Editor</div><span class="pipe-arrow">←</span>
-                    <div class="pipe-step">Machine Code</div>
-                </div>
-                <p><strong>وظائف Preprocessing الثلاثة:</strong></p>
-                <ul class="styled-list">
-                    <li><strong>Comments:</strong> <span class="en-inline">Removed from source file.</span></li>
-                    <li><strong>Macros:</strong> <span class="en-inline">Replaced with equivalent text.</span> (مثال: <code>#define pi 3.14</code>)</li>
-                    <li><strong>Directives:</strong> <span class="en-inline">Processed by the preprocessor.</span></li>
-                </ul>
-                <p style="margin-top: 15px;"><strong>وظيفتا Loader – Link Editor:</strong></p>
-                <ul class="styled-list">
-                    <li><strong>Loading:</strong> <span class="en-inline">Places machine code and data in memory at proper locations.</span></li>
-                    <li><strong>Link-Editing:</strong> <span class="en-inline">Makes a single program from several files.</span></li>
-                </ul>
-            </div>
-        </section>
-
-        <!-- ==================== CHAPTER 5 ==================== -->
-        <section id="ch5" class="chapter-section">
-            <div class="chapter-header">
-                <div class="chapter-num">5</div>
-                <h2>الفصل الخامس: Lexical Analyzer</h2>
-            </div>
-
-            <div class="card">
-                <div class="card-title">14. Lexical Analyzer (Scanner) & Tokens</div>
-                <div class="def-box">
-                    <div class="en">Definition: The lexical analyzer or scanner reads the source program one character at a time and produces a stream of tokens.</div>
-                    <div class="ar">يقوم بقراءة البرنامج حرفاً حرفاً وإنتاج مجموعة من Tokens.</div>
-                </div>
-                <div class="table-wrapper">
-                    <table class="en">
-                        <thead>
-                            <tr><th>Token</th><th>Example</th><th>Representation &lt;class, value&gt;</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>Identifiers</td><td>sum, value, X</td><td>&lt;ident, "sum"&gt;</td></tr>
-                            <tr><td>Numeric Literals</td><td>123, 1.35E02</td><td>&lt;numericliteral, "123"&gt;</td></tr>
-                            <tr><td>Operators</td><td>+, *, &amp;&amp;, &gt;=</td><td>&lt;relop, "&gt;="&gt; , &lt;addop, "+"&gt;</td></tr>
-                            <tr><td>Keywords</td><td>if, else, return</td><td>&lt;keyword, "if"&gt;</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <p><strong>Interaction of Scanner with Parser:</strong></p>
-                <ul class="styled-list">
-                    <li>يمسح البرنامج في Pass منفصل ويخزن الـ Tokens في ملف أو جدول.</li>
-                    <li>يُستدعى Scanner بواسطة Parser كلما احتاج إلى Token جديد <strong>(الطريقة المفضلة حسب المحاضرة)</strong>.</li>
-                </ul>
-                <p style="margin-top: 12px;"><strong>Secondary Tasks:</strong> Removing Comments, White Spaces, Blank, Tab, New Line Characters.</p>
-                <p style="margin-top: 12px;"><strong>Lexical Error Recovery Actions (احفظ التعداد الأربعة):</strong></p>
-                <ol class="styled-list en" style="direction: ltr;">
-                    <li>Deleting an extraneous character.</li>
-                    <li>Inserting a missing character.</li>
-                    <li>Replacing an incorrect character.</li>
-                    <li>Transposing two adjacent characters.</li>
-                </ol>
-            </div>
-        </section>
-
-        <!-- ==================== CHAPTER 6 ==================== -->
-        <section id="ch6" class="chapter-section">
-            <div class="chapter-header">
-                <div class="chapter-num">6</div>
-                <h2>الفصل السادس: Syntactic Analyzer (Parser)</h2>
-            </div>
-
-            <div class="card">
-                <div class="card-title">15. Parser & Parse Tree</div>
-                <div class="def-box">
-                    <div class="en">Definition: The Syntax Analyzer groups tokens into larger syntactic classes such as expressions, statements, and procedures.</div>
-                    <div class="ar">يقوم محلل القواعد بتجميع الـ Tokens لتكوين تعابير وجمل وبرامج صحيحة (وظائفه: Grouping Tokens, Checking Syntax Errors, Producing Parse Tree).</div>
-                </div>
-                <p><strong>Parse Tree:</strong> شجرة توضح التركيب النحوي للجملة؛ <strong>Leaves</strong> تمثل Tokens، و <strong>Non-leaf nodes</strong> تمثل Syntactic Classes.</p>
-                <pre>Grammar:  E → E + E  |  E * E  |  (E)  |  -E  |  id</pre>
-                
-                <div class="tree-grid">
-                    <div class="tree-card">
-                        <h4>1) id + id</h4>
-                        <pre>    E
+<section id="ch6" class="chapter-section">
+<div class="chapter-header"><div class="chapter-num">6</div><h2>الفصل السادس: Syntactic Analyzer (Parser)</h2></div>
+<div class="card"><div class="card-title">Parser & Parse Tree</div><div class="def-box"><div class="en">The Syntax Analyzer groups tokens into larger syntactic classes such as expressions, statements, and procedures.</div><div class="ar">يجمع Tokens لتكوين تعابير وجمل وبرامج صحيحة، ويتحقق من Syntax Errors وينتج Parse Tree.</div></div><p><b>Parse Tree:</b> Leaves represent Tokens; non-leaf nodes represent Syntactic Classes.</p><pre>Grammar: E → E + E | E * E | (E) | -E | id</pre><div class="tree-grid"><div class="tree-card"><h4>id + id</h4><pre>    E
   / | \
  E  +  E
  |     |
-id    id</pre>
-                    </div>
-                    <div class="tree-card">
-                        <h4>2) id * id</h4>
-                        <pre>    E
+id    id</pre></div><div class="tree-card"><h4>id * id</h4><pre>    E
   / | \
  E  *  E
  |     |
-id    id</pre>
-                    </div>
-                    <div class="tree-card">
-                        <h4>3) (id + id)</h4>
-                        <pre>     E
+id    id</pre></div><div class="tree-card"><h4>(id + id)</h4><pre>     E
    / | \
   (  E  )
     /|\
    E + E
    |   |
-  id  id</pre>
-                    </div>
-                    <div class="tree-card">
-                        <h4>4) -(id + id) [ص 21]</h4>
-                        <pre>     E
+  id  id</pre></div><div class="tree-card"><h4>-(id + id)</h4><pre>     E
     / \
    -   E
      / | \
@@ -1089,402 +234,204 @@ id    id</pre>
       /|\
      E + E
      |   |
-    id  id</pre>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">16. Derivations (Left-Most & Right-Most)</div>
-                <div class="def-box">
-                    <div class="en">Definition: A production is treated as a rewriting rule in which the nonterminal on the left is replaced by the string on the right side.</div>
-                    <div class="ar">Left-Most: نستبدل دائماً أول Nonterminal من اليسار | Right-Most: نستبدل دائماً آخر Nonterminal من اليمين.</div>
-                </div>
-
-                <div class="tree-grid">
-                    <div class="tree-card">
-                        <h4>id + id * id (Left-Most)</h4>
-                        <pre>1. E
+    id  id</pre></div></div></div>
+<div class="card"><div class="card-title">Derivations (Left-Most & Right-Most)</div><div class="def-box"><div class="en">A production is a rewriting rule in which the nonterminal on the left is replaced by the string on the right side.</div><div class="ar">Left-Most: نستبدل أول Nonterminal من اليسار. Right-Most: نستبدل آخر Nonterminal من اليمين.</div></div><div class="tree-grid"><div class="tree-card"><h4>id + id * id (Left-Most)</h4><pre>1. E
 2. E + E
 3. id + E
 4. id + E * E
 5. id + id * E
-6. id + id * id</pre>
-                    </div>
-                    <div class="tree-card">
-                        <h4>id + id * id (Right-Most)</h4>
-                        <pre>1. E
+6. id + id * id</pre></div><div class="tree-card"><h4>id + id * id (Right-Most)</h4><pre>1. E
 2. E + E
 3. E + E * E
 4. E + E * id
 5. E + id * id
-6. id + id * id</pre>
-                    </div>
-                    <div class="tree-card">
-                        <h4>id * id + id (Left-Most)</h4>
-                        <pre>1. E
+6. id + id * id</pre></div><div class="tree-card"><h4>id * id + id (Left-Most)</h4><pre>1. E
 2. E * E
 3. id * E
 4. id * E + E
 5. id * id + E
-6. id * id + id</pre>
-                    </div>
-                    <div class="tree-card">
-                        <h4>id * id + id (Right-Most)</h4>
-                        <pre>1. E
+6. id * id + id</pre></div><div class="tree-card"><h4>id * id + id (Right-Most)</h4><pre>1. E
 2. E + E
 3. E + id
 4. E * E + id
 5. E * id + id
-6. id * id + id</pre>
-                    </div>
-                </div>
+6. id * id + id</pre></div></div><h4 style="color:var(--accent);margin-top:16px">Syntax Error Examples</h4><div class="table-wrapper"><table class="en"><tr><th>Expression</th><th>Result</th></tr><tr><td>(id + id</td><td>Syntax Error</td></tr><tr><td>id + * id</td><td>Syntax Error</td></tr><tr><td>id + id)</td><td>Syntax Error</td></tr><tr><td>(id * id)</td><td>Correct</td></tr><tr><td>id + id</td><td>Correct</td></tr></table></div><h4 style="color:var(--accent);margin:16px 0 8px">Solved Exercises</h4><details><summary>اشتق id * id</summary><pre>1. E → 2. E * E → 3. id * E → 4. id * id</pre></details><details><summary>اشتق id + id باستخدام Left-Most</summary><pre>1. E → 2. E + E → 3. id + E → 4. id + id</pre></details><details><summary>اشتق id + id باستخدام Right-Most</summary><pre>1. E → 2. E + E → 3. E + id → 4. id + id</pre></details><details><summary>اشتق -id</summary><pre>1. E → 2. -E → 3. -id</pre></details><details><summary>اشتق (id)</summary><pre>1. E → 2. (E) → 3. (id)</pre></details><details><summary>اشتق id * id + id باستخدام Left-Most</summary><pre>1. E → 2. E + E → 3. E * E + E → 4. id * E + E → 5. id * id + E → 6. id * id + id</pre></details></div>
+</section>
 
-                <h4 style="margin: 20px 0 10px; color: var(--accent);">Syntax Error Examples:</h4>
-                <div class="table-wrapper">
-                    <table class="en">
-                        <thead><tr><th>Expression</th><th>Result</th></tr></thead>
-                        <tbody>
-                            <tr><td>(id + id</td><td style="color: var(--danger);">Syntax Error</td></tr>
-                            <tr><td>id + * id</td><td style="color: var(--danger);">Syntax Error</td></tr>
-                            <tr><td>id + id)</td><td style="color: var(--danger);">Syntax Error</td></tr>
-                            <tr><td>(id * id)</td><td style="color: var(--success);">Correct</td></tr>
-                            <tr><td>id + id</td><td style="color: var(--success);">Correct</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <h4 style="margin: 20px 0 10px; color: var(--accent);">تمارين امتحانية محلولة (اضغط لرؤية الحل):</h4>
-                <details>
-                    <summary>السؤال 1: اشتق id * id</summary>
-                    <pre>1. E  →  2. E * E  →  3. id * E  →  4. id * id</pre>
-                </details>
-                <details>
-                    <summary>السؤال 2: اشتق id + id باستخدام Left-Most</summary>
-                    <pre>1. E  →  2. E + E  →  3. id + E  →  4. id + id</pre>
-                </details>
-                <details>
-                    <summary>السؤال 3: اشتق id + id باستخدام Right-Most</summary>
-                    <pre>1. E  →  2. E + E  →  3. E + id  →  4. id + id</pre>
-                </details>
-                <details>
-                    <summary>السؤال 4: اشتق -id</summary>
-                    <pre>1. E  →  2. -E  →  3. -id</pre>
-                </details>
-                <details>
-                    <summary>السؤال 5: اشتق (id)</summary>
-                    <pre>1. E  →  2. (E)  →  3. (id)</pre>
-                </details>
-                <details>
-                    <summary>السؤال 6: اشتق id * id + id باستخدام Left-Most (بدءاً بـ E + E)</summary>
-                    <pre>1. E  →  2. E + E  →  3. E * E + E  →  4. id * E + E  →  5. id * id + E  →  6. id * id + id</pre>
-                </details>
-            </div>
-        </section>
-
-        <!-- ==================== CHAPTER 7 ==================== -->
-        <section id="ch7" class="chapter-section">
-            <div class="chapter-header">
-                <div class="chapter-num">7</div>
-                <h2>الفصل السابع: Ambiguity & Grammar Transformation</h2>
-            </div>
-
-            <div class="card">
-                <div class="card-title">17. Ambiguity & Elimination <span class="tag-important">مهم جداً</span></div>
-                <div class="def-box">
-                    <div class="en">Definition: A grammar that produces more than one parse tree for the same sentence is said to be ambiguous.</div>
-                    <div class="ar">القواعد تكون غامضة إذا أنتجت أكثر من Parse Tree (أو أكثر من Left-Most / Right-Most Derivation) للجملة نفسها، مثل: <code>id + id * id</code>.</div>
-                </div>
-                <p><strong>إعادة كتابة القواعد لإزالة الغموض (Elimination of Ambiguity):</strong></p>
-                <pre>E → E + T | T
+<section id="ch7" class="chapter-section">
+<div class="chapter-header"><div class="chapter-num">7</div><h2>الفصل السابع: Ambiguity & Grammar Transformation</h2></div>
+<div class="card"><div class="card-title">Ambiguity & Elimination <span class="tag-important">مهم جداً</span></div><div class="def-box"><div class="en">A grammar that produces more than one parse tree for the same sentence is said to be ambiguous.</div><div class="ar">القواعد غامضة إذا أنتجت أكثر من Parse Tree للجملة نفسها، مثل id + id * id.</div></div><p><b>Elimination of Ambiguity:</b></p><pre>E → E + T | T
 E → (E)
 E → -E
 T → T * F | F
-F → id</pre>
-            </div>
-
-            <div class="card">
-                <div class="card-title">18. Left-Recursion & Elimination</div>
-                <div class="def-box">
-                    <div class="en">Definition: A grammar is left-recursive if there is a nonterminal A such that: A → Aα (Top-Down Parser cannot handle it).</div>
-                    <div class="ar">القاعدة العامة للتحويل: إذا كانت <code>A → Aα | β</code> تصبح <code>A → βA'</code> و <code>A' → αA' | ε</code></div>
-                </div>
-                <div class="tree-grid">
-                    <div class="tree-card">
-                        <h4>قبل التحويل (Before)</h4>
-                        <pre>E → E + T | T
+F → id</pre></div>
+<div class="card"><div class="card-title">Left-Recursion & Elimination</div><div class="def-box"><div class="en">A grammar is left-recursive if there is a nonterminal A such that A → Aα. Top-Down Parser cannot handle it.</div><div class="ar">إذا كانت A → Aα | β تصبح A → βA' و A' → αA' | ε.</div></div><div class="tree-grid"><div class="tree-card"><h4>Before</h4><pre>E → E + T | T
 T → T * F | F
-F → (E) | id</pre>
-                    </div>
-                    <div class="tree-card">
-                        <h4>بعد التحويل (After)</h4>
-                        <pre>E  → T E'
+F → (E) | id</pre></div><div class="tree-card"><h4>After</h4><pre>E  → T E'
 E' → +T E' | ε
-
 T  → F T'
 T' → *F T' | ε
-
-F  → (E) | id</pre>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">19. Left-Factoring (صفحة 25)</div>
-                <div class="def-box">
-                    <div class="en">Definition: Left-Factoring is used when it is not clear which alternative production to use to expand a nonterminal.</div>
-                    <div class="ar">القاعدة العامة: إذا كانت <code>A → αβ₁ | αβ₂</code> تصبح <code>A → αA'</code> و <code>A' → β₁ | β₂</code></div>
-                </div>
-                <div class="tree-grid">
-                    <div class="tree-card">
-                        <h4>قبل التحويل (Before)</h4>
-                        <pre>S → iEtS | iEtSeS | a
-E → b</pre>
-                    </div>
-                    <div class="tree-card">
-                        <h4>بعد التحويل (After)</h4>
-                        <pre>S  → iEtSS' | a
+F  → (E) | id</pre></div></div></div>
+<div class="card"><div class="card-title">Left-Factoring</div><div class="def-box"><div class="en">Left-Factoring is used when it is not clear which alternative production to use to expand a nonterminal.</div><div class="ar">إذا A → αβ₁ | αβ₂ تصبح A → αA' و A' → β₁ | β₂.</div></div><div class="tree-grid"><div class="tree-card"><h4>Before</h4><pre>S → iEtS | iEtSeS | a
+E → b</pre></div><div class="tree-card"><h4>After</h4><pre>S  → iEtSS' | a
 S' → eS | ε
-E  → b</pre>
-                    </div>
-                </div>
-            </div>
-        </section>
+E  → b</pre></div></div></div>
+</section>
 
-        <!-- ==================== COMPARISONS ==================== -->
-        <section id="comparisons" class="chapter-section">
-            <div class="chapter-header">
-                <div class="chapter-num">⚡</div>
-                <h2>ملخص أهم الفروقات للحفظ</h2>
-            </div>
+<section id="previous-exams" class="chapter-section">
+<div class="chapter-header"><div class="chapter-num">📚</div><h2>Previous Years Exams – حلول السنوات السابقة</h2></div>
+<div class="card">
+<div class="card-title">Midterm Exam – First Semester 2025 <span class="tag-important">2025</span></div>
+<div class="def-box"><div class="en">University of Anbar – College of Computer Science and IT – Department of Computer Science</div><div class="ar">المرحلة الثالثة – المادة: المترجمات – التاريخ: 23/11/2025 – الوقت: ساعة واحدة</div></div>
+<p><b>NOTE: Answer Two Questions</b></p>
+</div>
+<div class="card">
+<div class="card-title">Q1: Fill in the Blanks <span class="tag-important">5 Marks</span></div>
+<details><summary>1. ______ and ______ phases usually handle a large fraction of the errors detectable by the compiler.</summary><pre>Lexical Analysis and Syntax Analysis.</pre><p>التحليل اللفظي والتحليل النحوي يكتشفان نسبة كبيرة من أخطاء البرنامج.</p></details>
+<details><summary>2. ______ is the actual language in which the computer carries out instructions.</summary><pre>Machine Language.</pre><p>لغة الآلة هي اللغة الفعلية التي ينفذ بها الحاسوب التعليمات.</p></details>
+<details><summary>3. ______ processes an internal form of source program and data at the same time.</summary><pre>Interpreter.</pre><p>المفسر يعالج البرنامج والبيانات في الوقت نفسه.</p></details>
+<details><summary>4. If source language is L.L.L and object language is H.L.L, the translator is called ______.</summary><pre>Decompiler.</pre><p>المترجم العكسي يحول من لغة منخفضة المستوى إلى لغة عالية المستوى.</p></details>
+<details><summary>5. A compiler must perform two major tasks: ______ and ______.</summary><pre>Analysis and Synthesis.</pre></details>
+<details><summary>6. The ______ can detect errors where the characters remaining in the input do not form any token of the language.</summary><pre>Lexical Analyzer (Scanner).</pre></details>
+<details><summary>7. If ST is ______, insertion operation may also involve a lookup operation.</summary><pre>Ordered Symbol Table.</pre><p>لأن الإدراج يحتاج تحديد موقع المتغير وفق الترتيب.</p></details>
+<details><summary>8. A grammar that produces more than one parse tree for the same sentence is said to be ______.</summary><pre>Ambiguous Grammar.</pre></details>
+</div>
+<div class="card">
+<div class="card-title">Q2: Respond to the Following <span class="tag-important">5 Marks</span></div>
+<details><summary>1. What is the hierarchy of programming languages based on increasing machine independence?</summary><pre>1. Machine Language
+2. Assembly Language
+3. High-Level Language
+4. Problem-Oriented Language</pre><p>كلما ارتفع مستوى اللغة زادت استقلاليتها عن نوع الجهاز.</p></details>
+<details><summary>2. Explain the programs required in addition to a compiler to create an executable target program.</summary><pre>1. Preprocessor:
+   Processes directives, removes comments
+   and expands macros.
 
-            <div class="card">
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr><th>المقارنة</th><th>الفرق الأساسي</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td class="en">Compiler / Interpreter</td><td>Compiler produces object program, Interpreter does not</td></tr>
-                            <tr><td class="en">H.L.L / L.L.L</td><td>High-level is easier and more machine-independent</td></tr>
-                            <tr><td class="en">Compile Time / Run Time</td><td>Translation / Execution</td></tr>
-                            <tr><td class="en">Front-End / Back-End</td><td>Source language / Target machine</td></tr>
-                            <tr><td class="en">Lexical / Syntax</td><td>Tokens / Structure</td></tr>
-                            <tr><td class="en">Syntax / Semantic</td><td>Structure / Meaning</td></tr>
-                            <tr><td class="en">Left-Most / Right-Most</td><td>Leftmost / Rightmost nonterminal</td></tr>
-                            <tr><td class="en">Left-Recursion / Left-Factoring</td><td>Eliminate recursive grammar / Delay production choice</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
+2. Assembler:
+   Converts assembly language into machine code.
 
-        <!-- ==================== INTERACTIVE QUIZ ==================== -->
-        <section id="quiz-section" class="chapter-section">
-            <div class="chapter-header">
-                <div class="chapter-num">🎯</div>
-                <h2>اختبر نفسك: بنك الأسئلة التفاعلي (29 سؤال MCQ)</h2>
-            </div>
+3. Link Editor:
+   Combines object files and libraries
+   into one executable program.
 
-            <div class="card">
-                <div class="quiz-header">
-                    <div class="score-badge" id="scoreDisplay">النتيجة: 0 / 29</div>
-                    <button class="reset-btn" onclick="resetQuiz()">إعادة الاختبار ↻</button>
-                </div>
-                <div id="quizContainer"></div>
-            </div>
-        </section>
+4. Loader:
+   Loads the executable program into memory.</pre><p>هذه البرامج تكمل مراحل إعداد البرنامج التنفيذي بعد كتابة البرنامج المصدري.</p></details>
+<details><summary>3. The scanner usually interacts with the parser in one of two ways. Explain.</summary><pre>1. Separate Pass:
+   Scanner processes the source program
+   and stores tokens in a file or table.
 
-    </main>
+2. On-Demand:
+   Parser calls the scanner whenever
+   it needs the next token.</pre><p>في الطريقة الثانية يطلب Parser الرمز التالي عند الحاجة إليه.</p></details>
+<details><summary>4. What are the contents of Symbol Table?</summary><pre>1. Variable Name.
+2. Object Time Address.
+3. Type.
+4. Dimension of Array or Number of Parameters.
+5. Source Line Number at which variable is declared.
+6. Source Line Number at which variable is referenced.
+7. Link Field for alphabetical order.</pre></details>
+<details><summary>5. In block-structured languages, how does the compiler designer resolve the duplicated variable-name problem?</summary><pre>Using a separate Symbol Table for each block.
 
-    <button id="back-to-top" title="العودة للأعلى">↑</button>
+Set:
+Create a new symbol table when entering a block.
 
-    <footer>
-        <p>ملخص مادة <strong>Compilers</strong> – كلية علوم الحاسوب وتكنولوجيا المعلومات – جامعة الأنبار</p>
-        <p style="margin-top: 6px;">صمم بواسطة المبرمج <a href="https://t.me/pbakr" target="_blank" rel="noopener">bakr jasim</a></p>
-        <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.8;">بالتوفيق والنجاح في الامتحان 🎓</p>
-    </footer>
+Lookup:
+Search the current block first, then enclosing blocks.
 
-    <script>
-        // 1. Theme Toggle (Dark / Light Mode)
-        const themeToggle = document.getElementById('themeToggle');
-        const body = document.body;
+Reset:
+Remove the local symbol table when leaving the block.</pre><p>يُستخدم Scope منفصل لكل Block؛ لذلك يمكن تكرار اسم المتغير في Blocks مختلفة، ويُبحث أولاً في النطاق المحلي ثم النطاقات الخارجية.</p></details>
+</div>
+<div class="card">
+<div class="card-title">Q3: Grammar and Nonrecursive Predictive Parsing <span class="tag-important">5 Marks</span></div>
+<div class="def-box"><div class="en">Consider the following grammar:</div><pre>S → (W) | x | S;
+W → S,S | S</pre></div>
+<details><summary>1. Is the above grammar LL(1) or not?</summary><pre>Answer: NO, it is not LL(1).</pre><p><b>Reasons:</b></p><ol class="styled-list"><li>There is direct left recursion in S → S;.</li><li>W → S,S | S has alternatives with a common prefix S.</li></ol><p>لذلك لا يمكن استخدام محلل LL(1) التنبؤي القياسي مباشرة قبل إزالة Left Recursion وLeft Factoring عند الحاجة.</p></details>
+<details><summary>2. Is the statement (x) accepted?</summary><pre>Input: (x)
 
-        themeToggle.addEventListener('click', () => {
-            const isDark = body.getAttribute('data-theme') === 'dark';
-            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
-            themeToggle.textContent = isDark ? '🌙' : '☀️';
-        });
+Derivation:
+1. S → (W)
+2.   → (S)
+3.   → (x)
 
-        // 2. Scroll Progress & Back to Top Button
-        const progressBar = document.getElementById('scroll-progress');
-        const backToTop = document.getElementById('back-to-top');
+Result: ACCEPTED.</pre><p>السلسلة (x) مقبولة حسب القواعد؛ لأننا اشتققناها من S → (W)، ثم W → S، ثم S → x.</p><p><b>ملاحظة:</b> قبول السلسلة حسب القواعد لا يعني أن القواعد LL(1). كما أن وجود Left Recursion يمنع تطبيق Nonrecursive Predictive Parsing القياسي مباشرة على القواعد بصيغتها الحالية.</p></details>
+</div>
+<div class="card">
+<div class="card-title">Quick Revision – أهم الأجوبة</div>
+<div class="table-wrapper"><table><tr><th>Question</th><th>Correct Answer</th></tr><tr><td>Q1–1</td><td class="en">Lexical & Syntax Analysis</td></tr><tr><td>Q1–2</td><td class="en">Machine Language</td></tr><tr><td>Q1–3</td><td class="en">Interpreter</td></tr><tr><td>Q1–4</td><td class="en">Decompiler</td></tr><tr><td>Q1–5</td><td class="en">Analysis & Synthesis</td></tr><tr><td>Q1–6</td><td class="en">Lexical Analyzer</td></tr><tr><td>Q1–7</td><td class="en">Ordered Symbol Table</td></tr><tr><td>Q1–8</td><td class="en">Ambiguous Grammar</td></tr><tr><td>Q3–1</td><td class="en">Not LL(1)</td></tr><tr><td>Q3–2</td><td class="en">Accepted: (x)</td></tr></table></div>
+</div>
+</section>
 
-        window.addEventListener('scroll', () => {
-            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (winScroll / height) * 100;
-            progressBar.style.width = scrolled + "%";
+<section id="comparisons" class="chapter-section">
+<div class="chapter-header"><div class="chapter-num">⚡</div><h2>ملخص أهم الفروقات للحفظ</h2></div>
+<div class="card"><div class="table-wrapper"><table><tr><th>المقارنة</th><th>الفرق الأساسي</th></tr><tr><td class="en">Compiler / Interpreter</td><td>Compiler produces object program; Interpreter does not.</td></tr><tr><td class="en">H.L.L / L.L.L</td><td>High-level is easier and more machine-independent.</td></tr><tr><td class="en">Compile Time / Run Time</td><td>Translation / Execution.</td></tr><tr><td class="en">Front-End / Back-End</td><td>Source language / Target machine.</td></tr><tr><td class="en">Lexical / Syntax</td><td>Tokens / Structure.</td></tr><tr><td class="en">Syntax / Semantic</td><td>Structure / Meaning.</td></tr><tr><td class="en">Left-Most / Right-Most</td><td>Leftmost / Rightmost nonterminal.</td></tr><tr><td class="en">Left-Recursion / Left-Factoring</td><td>Remove recursion / Factor common prefixes.</td></tr></table></div></div>
+</section>
 
-            if (winScroll > 400) {
-                backToTop.style.display = 'flex';
-            } else {
-                backToTop.style.display = 'none';
-            }
-        });
+<section id="quiz-section" class="chapter-section">
+<div class="chapter-header"><div class="chapter-num">🎯</div><h2>اختبر نفسك: بنك الأسئلة التفاعلي (29 سؤال MCQ)</h2></div>
+<div class="card"><div class="quiz-header"><div class="score-badge" id="scoreDisplay">النتيجة: 0 / 29</div><button class="reset-btn" onclick="resetQuiz()">إعادة الاختبار ↻</button></div><div id="quizContainer"></div></div>
+</section>
+</main>
+<button id="back-to-top" title="العودة للأعلى">↑</button>
+<footer><p>ملخص مادة <b>Compilers</b> – كلية علوم الحاسوب وتكنولوجيا المعلومات – جامعة الأنبار</p><p style="margin-top:6px">صمم بواسطة المبرمج <a href="https://t.me/pbakr" target="_blank" rel="noopener">bakr jasim</a></p><p style="font-size:.8rem;margin-top:4px">بالتوفيق والنجاح في الامتحان 🎓</p></footer>
 
-        backToTop.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+<script>
+const body=document.body,themeToggle=document.getElementById('themeToggle');
+themeToggle.addEventListener('click',()=>{const dark=body.getAttribute('data-theme')==='dark';body.setAttribute('data-theme',dark?'light':'dark');themeToggle.textContent=dark?'🌙':'☀️'});
+const progressBar=document.getElementById('scroll-progress'),backToTop=document.getElementById('back-to-top');
+window.addEventListener('scroll',()=>{const y=document.documentElement.scrollTop||document.body.scrollTop;const h=document.documentElement.scrollHeight-document.documentElement.clientHeight;progressBar.style.width=(h?y/h*100:0)+'%';backToTop.style.display=y>400?'grid':'none'});
+backToTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+document.getElementById('searchInput').addEventListener('input',e=>{const term=e.target.value.toLowerCase().trim();document.querySelectorAll('#pdfContent .card').forEach(card=>{if(card.closest('#quiz-section'))return;card.style.display=card.innerText.toLowerCase().includes(term)?'block':'none'})});
 
-        // 3. Scroll Reveal Animation (Intersection Observer)
-        const sections = document.querySelectorAll('.chapter-section');
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.05 });
+/* PDF export: native browser print, avoiding html2pdf canvas text distortion */
+function downloadPDF(){
+    const btn=document.getElementById('downloadPdfBtn');
+    const originalText=btn.textContent;
 
-        sections.forEach(sec => observer.observe(sec));
+    btn.disabled=true;
+    btn.textContent='جاري تجهيز PDF...';
 
-        // 4. Live Search Filter
-        const searchInput = document.getElementById('searchInput');
-        const cards = document.querySelectorAll('.card');
+    setTimeout(()=>{
+        btn.disabled=false;
+        btn.textContent=originalText;
+        window.print();
+    },300);
+}
 
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase().trim();
-            cards.forEach(card => {
-                if (card.closest('#quiz-section')) return; // Don't hide quiz container
-                const text = card.innerText.toLowerCase();
-                card.style.display = text.includes(term) ? 'block' : 'none';
-            });
-        });
-
-        // 5. PDF Download Function using html2pdf.js
-        function downloadPDF() {
-            const element = document.getElementById('pdfContent');
-            const btn = document.getElementById('downloadPdfBtn');
-            btn.textContent = "جاري تجهيز وتحميل الـ PDF ... ⏳";
-            btn.disabled = true;
-
-            const opt = {
-                margin:       10,
-                filename:     'Compilers_Summary_Bakr_Jasim.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().from(element).set(opt).save().then(() => {
-                btn.textContent = "📥 تحميل الملخص PDF";
-                btn.disabled = false;
-            }).catch(err => {
-                console.error(err);
-                btn.textContent = "📥 تحميل الملخص PDF";
-                btn.disabled = false;
-                alert("حدث خطأ أثناء تحميل الملف، يجدر المحاولة مجدداً.");
-            });
-        }
-
-        // 6. Quiz Data (All 29 Questions: 7 from Ch6 + 22 Comprehensive)
-        const questions = [
-            // Chapter 6 Questions
-            { q: "[Ch.6] 1. The Syntax Analyzer is also called:", opts: ["A. Scanner", "B. Parser", "C. Compiler", "D. Loader"], ans: 1 },
-            { q: "[Ch.6] 2. The output of Syntax Analyzer is:", opts: ["A. Token", "B. Symbol Table", "C. Parse Tree", "D. Machine Code"], ans: 2 },
-            { q: "[Ch.6] 3. Leaves of Parse Tree represent:", opts: ["A. Tokens", "B. Non-terminals", "C. Grammars", "D. Errors"], ans: 0 },
-            { q: "[Ch.6] 4. Left-Most Derivation replaces:", opts: ["A. Rightmost nonterminal", "B. Leftmost nonterminal", "C. All terminals", "D. Operators"], ans: 1 },
-            { q: "[Ch.6] 5. Right-Most Derivation replaces:", opts: ["A. Leftmost nonterminal", "B. Rightmost nonterminal", "C. First token", "D. Last token"], ans: 1 },
-            { q: "[Ch.6] 6. Syntax errors occur when:", opts: ["A. Structure rules are violated", "B. Memory is full", "C. Program is fast", "D. Code is optimized"], ans: 0 },
-            { q: "[Ch.6] 7. Which is a valid expression according to the given grammar?", opts: ["A. id + * id", "B. (id + id)", "C. id + )", "D. (id + id"], ans: 1 },
-            // Comprehensive 22 Questions
-            { q: "[General] 8. A programming language is a set of:", opts: ["A. Numbers only", "B. Symbols, words and rules", "C. Hardware components", "D. Memory addresses"], ans: 1 },
-            { q: "[General] 9. Which language uses numeric codes?", opts: ["A. Assembly", "B. High-Level", "C. Machine Language", "D. SQL"], ans: 2 },
-            { q: "[General] 10. SQL is an example of:", opts: ["A. Machine Language", "B. Problem-Oriented Language", "C. Assembly", "D. Decompiler"], ans: 1 },
-            { q: "[General] 11. The translator from H.L.L to L.L.L is:", opts: ["A. Assembler", "B. Compiler", "C. Decompiler", "D. Interpreter"], ans: 1 },
-            { q: "[General] 12. The time of program translation is called:", opts: ["A. Run Time", "B. Compile Time", "C. Execution Time", "D. Loading Time"], ans: 1 },
-            { q: "[General] 13. Which translator does not generate an object program?", opts: ["A. Compiler", "B. Assembler", "C. Interpreter", "D. Decompiler"], ans: 2 },
-            { q: "[General] 14. The compiler has how many major tasks?", opts: ["A. One", "B. Two", "C. Four", "D. Six"], ans: 1 },
-            { q: "[General] 15. Which phase produces tokens?", opts: ["A. Syntax Analyzer", "B. Semantic Analyzer", "C. Lexical Analyzer", "D. Code Generator"], ans: 2 },
-            { q: "[General] 16. Which phase checks the meaning of the program?", opts: ["A. Lexical", "B. Syntax", "C. Semantic", "D. Optimization"], ans: 2 },
-            { q: "[General] 17. Code Optimization aims to:", opts: ["A. Increase errors", "B. Improve efficiency", "C. Delete variables", "D. Generate tokens"], ans: 1 },
-            { q: "[General] 18. Front-End depends mainly on:", opts: ["A. Target machine", "B. Source language", "C. Operating system", "D. Hardware"], ans: 1 },
-            { q: "[General] 19. Back-End includes:", opts: ["A. Lexical and Syntax", "B. Semantic only", "C. Code Optimization and Code Generation", "D. Token generation"], ans: 2 },
-            { q: "[General] 20. A Symbol Table contains records for:", opts: ["A. Operators only", "B. Each identifier", "C. Comments", "D. Errors only"], ans: 1 },
-            { q: "[General] 21. An error in program structure is:", opts: ["A. Lexical", "B. Syntax", "C. Semantic", "D. Runtime"], ans: 1 },
-            { q: "[General] 22. Runtime errors occur:", opts: ["A. Another name for Compile", "B. During execution", "C. During preprocessing only", "D. During lexical analysis"], ans: 1 },
-            { q: "[General] 23. Preprocessor removes:", opts: ["A. Machine code", "B. Comments", "C. Target program", "D. Syntax trees"], ans: 1 },
-            { q: "[General] 24. Lexical Analyzer is also called:", opts: ["A. Parser", "B. Scanner", "C. Loader", "D. Optimizer"], ans: 1 },
-            { q: "[General] 25. Which is a token?", opts: ["A. sum", "B. All listed options", "C. if", "D. +"], ans: 1 },
-            { q: "[General] 26. Which action is used for lexical error recovery?", opts: ["A. Deleting a character", "B. Inserting a character", "C. Replacing a character", "D. All of them"], ans: 3 },
-            { q: "[General] 27. A grammar producing more than one parse tree is:", opts: ["A. Unambiguous", "B. Ambiguous", "C. Regular", "D. Semantic"], ans: 1 },
-            { q: "[General] 28. Top-Down Parser cannot handle:", opts: ["A. Left Recursion", "B. Identifiers", "C. Constants", "D. Tokens"], ans: 0 },
-            { q: "[General] 29. Left-Factoring is used to:", opts: ["A. Remove common prefixes", "B. Generate machine code", "C. Detect runtime errors", "D. Create symbol tables"], ans: 0 }
-        ];
-
-        let score = 0;
-
-        function renderQuiz() {
-            const container = document.getElementById('quizContainer');
-            container.innerHTML = '';
-            score = 0;
-            updateScore();
-
-            questions.forEach((item, qIndex) => {
-                const qBox = document.createElement('div');
-                qBox.className = 'question-box';
-
-                const qText = document.createElement('div');
-                qText.className = 'q-text';
-                qText.textContent = item.q;
-                qBox.appendChild(qText);
-
-                const optsGrid = document.createElement('div');
-                optsGrid.className = 'options-grid';
-
-                item.opts.forEach((optText, oIndex) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'opt-btn';
-                    btn.textContent = optText;
-                    btn.onclick = () => handleAnswer(qIndex, oIndex, optsGrid);
-                    optsGrid.appendChild(btn);
-                });
-
-                qBox.appendChild(optsGrid);
-                container.appendChild(qBox);
-            });
-        }
-
-        function handleAnswer(qIndex, selectedIndex, optsGrid) {
-            const buttons = optsGrid.querySelectorAll('.opt-btn');
-            const correctIndex = questions[qIndex].ans;
-
-            buttons.forEach((btn, idx) => {
-                btn.disabled = true;
-                if (idx === correctIndex) {
-                    btn.classList.add('correct');
-                } else if (idx === selectedIndex && selectedIndex !== correctIndex) {
-                    btn.classList.add('wrong');
-                }
-            });
-
-            if (selectedIndex === correctIndex) {
-                score++;
-                updateScore();
-            }
-        }
-
-        function updateScore() {
-            document.getElementById('scoreDisplay').textContent = `النتيجة: ${score} / ${questions.length}`;
-        }
-
-        function resetQuiz() {
-            renderQuiz();
-        }
-
-        // Initialize Quiz on Load
-        renderQuiz();
-    </script>
+const questions=[
+{q:"[Ch.6] 1. The Syntax Analyzer is also called:",opts:["A. Scanner","B. Parser","C. Compiler","D. Loader"],ans:1},
+{q:"[Ch.6] 2. The output of Syntax Analyzer is:",opts:["A. Token","B. Symbol Table","C. Parse Tree","D. Machine Code"],ans:2},
+{q:"[Ch.6] 3. Leaves of Parse Tree represent:",opts:["A. Tokens","B. Non-terminals","C. Grammars","D. Errors"],ans:0},
+{q:"[Ch.6] 4. Left-Most Derivation replaces:",opts:["A. Rightmost nonterminal","B. Leftmost nonterminal","C. All terminals","D. Operators"],ans:1},
+{q:"[Ch.6] 5. Right-Most Derivation replaces:",opts:["A. Leftmost nonterminal","B. Rightmost nonterminal","C. First token","D. Last token"],ans:1},
+{q:"[Ch.6] 6. Syntax errors occur when:",opts:["A. Structure rules are violated","B. Memory is full","C. Program is fast","D. Code is optimized"],ans:0},
+{q:"[Ch.6] 7. Which is a valid expression according to the given grammar?",opts:["A. id + * id","B. (id + id)","C. id + )","D. (id + id"],ans:1},
+{q:"[General] 8. A programming language is a set of:",opts:["A. Numbers only","B. Symbols, words and rules","C. Hardware components","D. Memory addresses"],ans:1},
+{q:"[General] 9. Which language uses numeric codes?",opts:["A. Assembly","B. High-Level","C. Machine Language","D. SQL"],ans:2},
+{q:"[General] 10. SQL is an example of:",opts:["A. Machine Language","B. Problem-Oriented Language","C. Assembly","D. Decompiler"],ans:1},
+{q:"[General] 11. The translator from H.L.L to L.L.L is:",opts:["A. Assembler","B. Compiler","C. Decompiler","D. Interpreter"],ans:1},
+{q:"[General] 12. The time of program translation is called:",opts:["A. Run Time","B. Compile Time","C. Execution Time","D. Loading Time"],ans:1},
+{q:"[General] 13. Which translator does not generate an object program?",opts:["A. Compiler","B. Assembler","C. Interpreter","D. Decompiler"],ans:2},
+{q:"[General] 14. The compiler has how many major tasks?",opts:["A. One","B. Two","C. Four","D. Six"],ans:1},
+{q:"[General] 15. Which phase produces tokens?",opts:["A. Syntax Analyzer","B. Semantic Analyzer","C. Lexical Analyzer","D. Code Generator"],ans:2},
+{q:"[General] 16. Which phase checks the meaning of the program?",opts:["A. Lexical","B. Syntax","C. Semantic","D. Optimization"],ans:2},
+{q:"[General] 17. Code Optimization aims to:",opts:["A. Increase errors","B. Improve efficiency","C. Delete variables","D. Generate tokens"],ans:1},
+{q:"[General] 18. Front-End depends mainly on:",opts:["A. Target machine","B. Source language","C. Operating system","D. Hardware"],ans:1},
+{q:"[General] 19. Back-End includes:",opts:["A. Lexical and Syntax","B. Semantic only","C. Code Optimization and Code Generation","D. Token generation"],ans:2},
+{q:"[General] 20. A Symbol Table contains records for:",opts:["A. Operators only","B. Each identifier","C. Comments","D. Errors only"],ans:1},
+{q:"[General] 21. An error in program structure is:",opts:["A. Lexical","B. Syntax","C. Semantic","D. Runtime"],ans:1},
+{q:"[General] 22. Runtime errors occur:",opts:["A. Compile time","B. During execution","C. During preprocessing only","D. During lexical analysis"],ans:1},
+{q:"[General] 23. Preprocessor removes:",opts:["A. Machine code","B. Comments","C. Target program","D. Syntax trees"],ans:1},
+{q:"[General] 24. Lexical Analyzer is also called:",opts:["A. Parser","B. Scanner","C. Loader","D. Optimizer"],ans:1},
+{q:"[General] 25. Which is a token?",opts:["A. sum","B. All listed options","C. if","D. +"],ans:1},
+{q:"[General] 26. Which action is used for lexical error recovery?",opts:["A. Deleting a character","B. Inserting a character","C. Replacing a character","D. All of them"],ans:3},
+{q:"[General] 27. A grammar producing more than one parse tree is:",opts:["A. Unambiguous","B. Ambiguous","C. Regular","D. Semantic"],ans:1},
+{q:"[General] 28. Top-Down Parser cannot handle:",opts:["A. Left Recursion","B. Identifiers","C. Constants","D. Tokens"],ans:0},
+{q:"[General] 29. Left-Factoring is used to:",opts:["A. Remove common prefixes","B. Generate machine code","C. Detect runtime errors","D. Create symbol tables"],ans:0}
+];
+let score=0;
+function updateScore(){document.getElementById('scoreDisplay').textContent=`النتيجة: ${score} / ${questions.length}`}
+function renderQuiz(){const c=document.getElementById('quizContainer');c.innerHTML='';score=0;updateScore();questions.forEach((q,i)=>{const box=document.createElement('div');box.className='question-box';const title=document.createElement('div');title.className='q-text';title.textContent=q.q;box.appendChild(title);const grid=document.createElement('div');grid.className='options-grid';q.opts.forEach((o,j)=>{const b=document.createElement('button');b.className='opt-btn';b.textContent=o;b.addEventListener('click',()=>{if(b.disabled)return;grid.querySelectorAll('button').forEach((x,k)=>{x.disabled=true;if(k===q.ans)x.classList.add('correct');else if(k===j)x.classList.add('wrong')});if(j===q.ans){score++;updateScore()}});grid.appendChild(b)});box.appendChild(grid);c.appendChild(box)})}
+function resetQuiz(){renderQuiz()}
+renderQuiz();
+</script>
 </body>
 </html>
